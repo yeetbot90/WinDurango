@@ -1,6 +1,7 @@
 name: Build WinDurango
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -16,17 +17,22 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v5
+
       - name: Setup CMake
         uses: lukka/get-cmake@latest
-
-      - name: Setup Ninja
-        uses: seanmiddleditch/gha-setup-ninja@v4
 
       - name: Bootstrap vcpkg
         shell: cmd
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           vcpkg\bootstrap-vcpkg.bat
+
+      - name: Install dependencies
+        shell: cmd
+        run: |
+          vcpkg\vcpkg install detours:x64-windows
 
       - name: Configure
         shell: cmd
@@ -46,5 +52,8 @@ jobs:
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
-          name: WinDurango
-          path: build
+          name: WinDurango-build
+          path: |
+            build/bin/*
+            build/**/*.dll
+            build/**/*.exe
