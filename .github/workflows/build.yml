@@ -1,0 +1,50 @@
+name: Build WinDurango
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v4
+
+      - name: Bootstrap vcpkg
+        shell: cmd
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          vcpkg\bootstrap-vcpkg.bat
+
+      - name: Configure
+        shell: cmd
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_TOOLCHAIN_FILE=%CD%\..\vcpkg\scripts\buildsystems\vcpkg.cmake
+
+      - name: Build
+        shell: cmd
+        run: |
+          cd build
+          ninja
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinDurango
+          path: build
