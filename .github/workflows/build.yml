@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -23,33 +23,33 @@ jobs:
       - name: Setup CMake
         uses: lukka/get-cmake@latest
 
-      - name: Bootstrap vcpkg
+      - name: Clone vcpkg
         shell: cmd
         run: |
           git clone https://github.com/microsoft/vcpkg.git
-          vcpkg\bootstrap-vcpkg.bat
 
-      - name: Install dependencies
+      - name: Bootstrap vcpkg
         shell: cmd
         run: |
-          vcpkg\vcpkg install detours:x64-windows
+          vcpkg\bootstrap-vcpkg.bat
 
-      - name: Configure
+      - name: Configure CMake
         shell: cmd
         run: |
           mkdir build
           cd build
           cmake .. -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
-            -DCMAKE_TOOLCHAIN_FILE=%CD%\..\vcpkg\scripts\buildsystems\vcpkg.cmake
+            -DCMAKE_TOOLCHAIN_FILE=%CD%\..\vcpkg\scripts\buildsystems\vcpkg.cmake ^
+            -DVCPKG_TARGET_TRIPLET=x64-windows
 
-      - name: Build
+      - name: Build project
         shell: cmd
         run: |
           cd build
           ninja
 
-      - name: Upload build
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: WinDurango-build
