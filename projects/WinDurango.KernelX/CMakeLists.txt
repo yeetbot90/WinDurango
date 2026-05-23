@@ -17,10 +17,17 @@ set(FILES
 
 add_library(WinDurango.KernelX SHARED ${FILES})
 
+find_path(DETOURS_INCLUDE_DIR detours.h)
+find_library(DETOURS_LIBRARY detours)
+
+if(NOT DETOURS_INCLUDE_DIR OR NOT DETOURS_LIBRARY)
+    message(FATAL_ERROR "detours was not found via vcpkg/toolchain. Make sure dependencies are installed for the selected VCPKG_TARGET_TRIPLET.")
+endif()
+
 target_link_libraries(WinDurango.KernelX PRIVATE 
     WinDurango.Common 
     WinDurango.Implementation.WinRT 
-    "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/detours_x64-windows/lib/detours.lib"
+    ${DETOURS_LIBRARY}
 )
 
 target_link_options(WinDurango.KernelX
@@ -32,7 +39,7 @@ target_include_directories(WinDurango.KernelX PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/WinDurango.KernelX/
     ${CMAKE_SOURCE_DIR}/projects/WinDurango.Common/include
     ${CMAKE_SOURCE_DIR}/projects/WinDurango.Implementation.WinRT/include
-    ${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/detours_x64-windows/include/detours
+    ${DETOURS_INCLUDE_DIR}
 )
 
 set_target_properties(WinDurango.KernelX PROPERTIES
