@@ -9,7 +9,6 @@ HRESULT EraXboxUserLicenseInformationWrapper::QueryInterface(const IID &riid, vo
         return S_OK;
     }
 
-    *ppvObject = nullptr;
     return E_NOINTERFACE;
 }
 
@@ -27,17 +26,36 @@ ULONG EraXboxUserLicenseInformationWrapper::Release()
 
 HRESULT EraXboxUserLicenseInformationWrapper::GetIids(ULONG *iidCount, IID **iids)
 {
-    return E_NOTIMPL;
+    if (!iidCount || !iids)
+    {
+        return E_POINTER;
+    }
+
+    *iidCount = 0;
+    *iids = nullptr;
+    return S_OK;
 }
 
 HRESULT EraXboxUserLicenseInformationWrapper::GetRuntimeClassName(HSTRING *className)
 {
-    return E_NOTIMPL;
+    if (!className)
+    {
+        return E_POINTER;
+    }
+
+    *className = nullptr;
+    return S_OK;
 }
 
 HRESULT EraXboxUserLicenseInformationWrapper::GetTrustLevel(TrustLevel *trustLevel)
 {
-    return E_NOTIMPL;
+    if (!trustLevel)
+    {
+        return E_POINTER;
+    }
+
+    *trustLevel = BaseTrust;
+    return S_OK;
 }
 
 HRESULT EraXboxUserLicenseInformationWrapper::get_CurrentLicenseUserXuid(winrt::hstring *value)
@@ -72,7 +90,6 @@ HRESULT EraLicenseInformationWrapper::QueryInterface(const IID &riid, void **ppv
         printf("[LicenseInformationWrapperX] Interface Not Implemented: %s\n", iidstr);
     }
 
-    *ppvObject = nullptr;
     return E_NOINTERFACE;
 }
 
@@ -191,7 +208,23 @@ HRESULT EraCurrentAppWrapper::GetTrustLevel(TrustLevel *trustLevel)
 
 HRESULT EraCurrentAppWrapper::get_LicenseInformation(ABI::Windows::ApplicationModel::Store::ILicenseInformation **value)
 {
-    return E_NOTIMPL;
+    if (!value)
+    {
+        return E_POINTER;
+    }
+
+    *value = nullptr;
+
+    ABI::Windows::ApplicationModel::Store::ILicenseInformation *realLicenseInfo = nullptr;
+    const HRESULT hr = m_realCurrentApp->get_LicenseInformation(&realLicenseInfo);
+    if (FAILED(hr) || !realLicenseInfo)
+    {
+        return FAILED(hr) ? hr : E_FAIL;
+    }
+
+    *value = reinterpret_cast<ABI::Windows::ApplicationModel::Store::ILicenseInformation *>(
+        new EraLicenseInformationWrapper(realLicenseInfo));
+    return S_OK;
 }
 
 HRESULT EraCurrentAppWrapper::get_LinkUri(ABI::Windows::Foundation::IUriRuntimeClass **value)
