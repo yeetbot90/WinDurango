@@ -17,11 +17,26 @@ set(FILES
 
 add_library(WinDurango.KernelX SHARED ${FILES})
 
-find_path(DETOURS_INCLUDE_DIR detours.h)
-find_library(DETOURS_LIBRARY detours)
+find_path(DETOURS_INCLUDE_DIR
+    NAMES detours.h
+    HINTS
+        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}"
+        "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}"
+    PATH_SUFFIXES include include/detours
+)
+
+find_library(DETOURS_LIBRARY
+    NAMES detours
+    HINTS
+        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}"
+        "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}"
+    PATH_SUFFIXES lib
+)
 
 if(NOT DETOURS_INCLUDE_DIR OR NOT DETOURS_LIBRARY)
-    message(FATAL_ERROR "detours was not found via vcpkg/toolchain. Make sure dependencies are installed for the selected VCPKG_TARGET_TRIPLET.")
+    message(FATAL_ERROR
+        "detours was not found for triplet '${VCPKG_TARGET_TRIPLET}'. "
+        "Expected under VCPKG_INSTALLED_DIR='${VCPKG_INSTALLED_DIR}'.")
 endif()
 
 target_link_libraries(WinDurango.KernelX PRIVATE 
