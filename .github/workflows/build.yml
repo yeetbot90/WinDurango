@@ -36,12 +36,16 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/vcpkg_installed
-            ${{ github.workspace }}/build
           key: ${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('vcpkg.json', '**/CMakeLists.txt') }}
+
+      - name: Install vcpkg dependencies
+        shell: pwsh
+        run: vcpkg install --triplet ${{ matrix.triplet }}
 
       - name: Configure CMake
         shell: pwsh
         run: |
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
           cmake -S . -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
